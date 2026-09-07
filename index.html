@@ -403,7 +403,7 @@
     /* ============================================ */
     const API_URL = 'https://api.anthropic.com/v1/messages';
     const MODEL = 'claude-sonnet-5';
-    const MAX_TOKENS = 4096;
+    const MAX_TOKENS = 16000;
 
     // This prompt is ONLY used once to extract ALL learning content from the image
     const EXTRACTION_PROMPT = `Bekijk deze foto van huiswerk. Zoek ALLE leerstof op de pagina en geef alles terug als JSON.
@@ -626,7 +626,10 @@ BELANGRIJK:
       }
 
       const data = await response.json();
-      const text = data.content[0].text.trim();
+      // Response can start with a thinking block, so pick the text block explicitly
+      const textBlock = data.content?.find(b => b.type === 'text');
+      if (!textBlock) throw new Error('Geen antwoord gekregen. Probeer het opnieuw!');
+      const text = textBlock.text.trim();
 
       // Parse JSON from the response (handle potential markdown code blocks)
       let jsonStr = text;
