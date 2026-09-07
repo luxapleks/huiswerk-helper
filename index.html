@@ -424,6 +424,11 @@ Voorbeeld:
 
 BELANGRIJK:
 - Doorzoek ALLE secties van het document, niet alleen de eerste sectie
+- Neem ALLEEN paren over die als paar op het blad staan. Vertaal NOOIT zelf iets.
+  Staat er een Engelse voorbeeldzin zonder Nederlandse vertaling ernaast? Sla die zin over.
+  Bij een rij als "after | na | We can play together after lunch." pak je alleen after/na.
+- Een sectie kan twee kolommen naast elkaar hebben die allebei woordparen bevatten;
+  neem beide kolommen mee
 - Bij getallen: "en" = Engels woord (bijv. "twenty-one"), "nl" = het cijfer als string (bijv. "21")
 - Bij zinnen: neem de hele zin over inclusief leestekens
 - Geef ALLEEN de JSON array terug, geen andere tekst
@@ -737,6 +742,12 @@ BELANGRIJK:
       updateStats();
     }
 
+    // "slordig, rommelig" lists two valid translations — accept either one, or the whole thing
+    function acceptedAnswers(answer) {
+      const variants = answer.split(/[,/]/).map(normalizeAnswer).filter(Boolean);
+      return [normalizeAnswer(answer), ...variants];
+    }
+
     function normalizeAnswer(str) {
       return str.toLowerCase().trim()
         .replace(/[.,!?;:'"()]/g, '')  // strip punctuation
@@ -749,7 +760,7 @@ BELANGRIJK:
       if (!userAnswer) return;
 
       const item = state.quizQueue[state.currentIndex];
-      const correct = normalizeAnswer(item.answer) === userAnswer;
+      const correct = acceptedAnswers(item.answer).includes(userAnswer);
 
       // Show feedback
       const fb = document.createElement('div');
