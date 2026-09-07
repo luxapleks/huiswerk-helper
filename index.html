@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Huiswerk Helper - Estrella</title>
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Fredoka+One&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Fredoka+One&family=Press+Start+2P&display=swap" rel="stylesheet">
   <style>
     :root {
       --primary: #6C63FF;
@@ -28,6 +28,25 @@
       --shadow-lg: 0 8px 40px rgba(108, 99, 255, 0.2);
       --font-main: 'Nunito', sans-serif;
       --font-fun: 'Fredoka One', cursive;
+      --font-pixel: 'Press Start 2P', monospace;
+      /* Minecraft block palette */
+      --mc-grass: #5D9C3F;
+      --mc-grass-light: #7FBF5A;
+      --mc-grass-dark: #3B6B26;
+      --mc-dirt: #8B5A2B;
+      --mc-stone: #7A7A7A;
+      --mc-stone-light: #9E9E9E;
+      --mc-stone-dark: #545454;
+      --mc-diamond: #4AEDD9;
+      --mc-gold: #FCDC5F;
+      --mc-redstone: #D63F3F;
+    }
+    /* Minecraft 3D bevel: light top/left, dark bottom/right, no rounding */
+    .mc-block {
+      border-style: solid;
+      border-width: 3px;
+      border-radius: 0;
+      image-rendering: pixelated;
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
@@ -73,11 +92,17 @@
     }
     #api-key-input:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(108,99,255,0.1); background: white; outline: none; }
     .btn-primary {
-      background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white;
-      padding: 14px 32px; border-radius: var(--radius); font-size: 18px; font-weight: 800;
-      box-shadow: 0 4px 15px rgba(108,99,255,0.3); letter-spacing: 0.5px;
+      background: var(--mc-grass); color: white;
+      padding: 14px 32px; border-radius: 0; font-size: 15px; font-weight: 800;
+      font-family: var(--font-pixel); letter-spacing: 0.5px; line-height: 1.6;
+      border: 4px solid;
+      border-color: var(--mc-grass-light) var(--mc-grass-dark) var(--mc-grass-dark) var(--mc-grass-light);
+      text-shadow: 2px 2px 0 rgba(0,0,0,0.3);
     }
-    .btn-primary:hover { box-shadow: 0 6px 25px rgba(108,99,255,0.4); }
+    .btn-primary:hover { background: var(--mc-grass-light); }
+    .btn-primary:active {
+      border-color: var(--mc-grass-dark) var(--mc-grass-light) var(--mc-grass-light) var(--mc-grass-dark);
+    }
     .setup-error { color: var(--secondary); font-size: 14px; font-weight: 600; min-height: 20px; margin-top: 8px; }
 
     /* HEADER */
@@ -90,19 +115,32 @@
     .logo-area { display: flex; align-items: center; gap: 10px; }
     .logo-area .mascot { font-size: 32px; animation: float 3s ease-in-out infinite; }
     .logo-area h1 {
-      font-family: var(--font-fun); font-size: 22px;
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      font-family: var(--font-pixel); font-size: 13px; line-height: 1.4;
+      color: var(--mc-grass-dark);
+      text-shadow: 2px 2px 0 rgba(0,0,0,0.15);
     }
     .stats-bar { display: flex; align-items: center; gap: 10px; }
     .stat-badge {
-      display: flex; align-items: center; gap: 5px; padding: 5px 12px;
-      border-radius: 20px; font-weight: 700; font-size: 14px; border: 2px solid;
+      display: flex; align-items: center; gap: 5px; padding: 5px 10px;
+      border-radius: 0; font-weight: 700; font-size: 14px;
+      border: 3px solid; border-style: solid;
     }
-    .stat-badge.good { background: linear-gradient(135deg, #E8F5E9, #C8E6C9); border-color: #A5D6A7; color: #2E7D32; }
-    .stat-badge.bad { background: linear-gradient(135deg, #FFEBEE, #FFCDD2); border-color: #EF9A9A; color: #C62828; }
-    .stat-badge.pct { background: linear-gradient(135deg, #FFF9E6, #FFF3CC); border-color: #FFE082; color: #F57F17; }
-    .stat-badge.progress-badge { background: linear-gradient(135deg, #E3F2FD, #BBDEFB); border-color: #90CAF9; color: #1565C0; }
+    .stat-badge.good {
+      background: #C8E6C9; color: #1B5E20;
+      border-color: #E8F5E9 #7CB342 #7CB342 #E8F5E9;
+    }
+    .stat-badge.bad {
+      background: #FFCDD2; color: #B71C1C;
+      border-color: #FFEBEE #E57373 #E57373 #FFEBEE;
+    }
+    .stat-badge.pct {
+      background: var(--mc-gold); color: #7A5B00;
+      border-color: #FFF3B0 #C9A227 #C9A227 #FFF3B0;
+    }
+    .stat-badge.progress-badge {
+      background: var(--mc-diamond); color: #0B5F57;
+      border-color: #B2F7EF #2BA89A #2BA89A #B2F7EF;
+    }
     .stat-value { transition: transform 0.3s; }
     .stat-value.pop { animation: popIn 0.4s ease-out; }
     #settings-btn {
@@ -128,12 +166,17 @@
     #drop-zone p { color: var(--text-secondary); font-size: 15px; }
     .upload-single-btn {
       display: flex; align-items: center; justify-content: center; gap: 12px;
-      background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white;
-      border-radius: var(--radius); padding: 20px 40px; font-size: 20px; font-weight: 800;
-      margin: 24px auto 0; box-shadow: 0 4px 15px rgba(108,99,255,0.3);
-      letter-spacing: 0.5px;
+      background: var(--mc-grass); color: white;
+      border-radius: 0; padding: 20px 32px; font-size: 14px; font-weight: 800;
+      font-family: var(--font-pixel); line-height: 1.6; margin: 24px auto 0;
+      border: 4px solid;
+      border-color: var(--mc-grass-light) var(--mc-grass-dark) var(--mc-grass-dark) var(--mc-grass-light);
+      text-shadow: 2px 2px 0 rgba(0,0,0,0.3);
     }
-    .upload-single-btn:hover { box-shadow: 0 6px 25px rgba(108,99,255,0.4); }
+    .upload-single-btn:hover { background: var(--mc-grass-light); }
+    .upload-single-btn:active {
+      border-color: var(--mc-grass-dark) var(--mc-grass-light) var(--mc-grass-light) var(--mc-grass-dark);
+    }
     .upload-single-btn .upload-btn-icon { font-size: 28px; }
     .file-input-hidden { display: none; }
     #image-preview { display: none; text-align: center; animation: fadeInUp 0.4s ease-out; }
@@ -145,16 +188,29 @@
     }
     .preview-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
     .btn-secondary {
-      background: white; color: var(--primary); border: 2px solid var(--primary);
-      padding: 12px 24px; border-radius: var(--radius); font-size: 16px; font-weight: 700;
+      background: var(--mc-stone); color: white;
+      padding: 12px 24px; border-radius: 0; font-size: 12px; font-weight: 700;
+      font-family: var(--font-pixel); line-height: 1.6;
+      border: 4px solid;
+      border-color: var(--mc-stone-light) var(--mc-stone-dark) var(--mc-stone-dark) var(--mc-stone-light);
+      text-shadow: 2px 2px 0 rgba(0,0,0,0.3);
     }
-    .btn-secondary:hover { background: var(--bg-main); }
+    .btn-secondary:hover { background: var(--mc-stone-light); }
+    .btn-secondary:active {
+      border-color: var(--mc-stone-dark) var(--mc-stone-light) var(--mc-stone-light) var(--mc-stone-dark);
+    }
     .btn-analyze {
-      background: linear-gradient(135deg, var(--success), #66BB6A); color: white;
-      padding: 14px 32px; border-radius: var(--radius); font-size: 18px; font-weight: 800;
-      box-shadow: 0 4px 15px rgba(76,175,80,0.3);
+      background: var(--mc-grass); color: white;
+      padding: 14px 28px; border-radius: 0; font-size: 14px; font-weight: 800;
+      font-family: var(--font-pixel); line-height: 1.6;
+      border: 4px solid;
+      border-color: var(--mc-grass-light) var(--mc-grass-dark) var(--mc-grass-dark) var(--mc-grass-light);
+      text-shadow: 2px 2px 0 rgba(0,0,0,0.3);
     }
-    .btn-analyze:hover { box-shadow: 0 6px 25px rgba(76,175,80,0.4); }
+    .btn-analyze:hover { background: var(--mc-grass-light); }
+    .btn-analyze:active {
+      border-color: var(--mc-grass-dark) var(--mc-grass-light) var(--mc-grass-light) var(--mc-grass-dark);
+    }
 
     /* QUIZ AREA */
     #quiz-area { display: none; animation: fadeInUp 0.5s ease-out; }
@@ -179,6 +235,18 @@
     .quiz-progress {
       font-size: 13px; color: var(--text-light); margin-bottom: 0;
     }
+    /* Minecraft XP bar */
+    .xp-bar {
+      margin: 14px auto 0; max-width: 320px; height: 16px;
+      background: #2B2B2B; border: 3px solid;
+      border-color: #1A1A1A #4A4A4A #4A4A4A #1A1A1A;
+      border-radius: 0; overflow: hidden;
+    }
+    .xp-fill {
+      height: 100%; width: 0%;
+      background: repeating-linear-gradient(90deg, #7FFF3F 0 6px, #6BE22F 6px 12px);
+      transition: width 0.4s ease-out;
+    }
 
     .quiz-input-area {
       display: flex; gap: 10px; align-items: center; padding: 12px; background: white;
@@ -190,23 +258,35 @@
     }
     #quiz-input:focus { border-color: var(--primary); outline: none; }
     #quiz-submit-btn {
-      background: var(--primary); color: white; width: 52px; height: 52px; border-radius: 50%;
+      background: var(--mc-grass); color: white; width: 52px; height: 52px; border-radius: 0;
       font-size: 22px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      border: 4px solid;
+      border-color: var(--mc-grass-light) var(--mc-grass-dark) var(--mc-grass-dark) var(--mc-grass-light);
+    }
+    #quiz-submit-btn:active {
+      border-color: var(--mc-grass-dark) var(--mc-grass-light) var(--mc-grass-light) var(--mc-grass-dark);
     }
     .quiz-action-buttons { display: flex; gap: 8px; width: 100%; margin-top: 4px; }
     #quiz-hint-btn {
-      background: linear-gradient(135deg, var(--warning), var(--warning-light));
-      color: white; padding: 8px 16px; border-radius: 20px; font-size: 14px; flex: 1;
+      background: var(--mc-gold); color: #6B4E00;
+      padding: 10px 16px; border-radius: 0; font-size: 11px; flex: 1;
+      font-family: var(--font-pixel); line-height: 1.6;
+      border: 3px solid;
+      border-color: #FFF3B0 #C9A227 #C9A227 #FFF3B0;
     }
     #quiz-new-btn {
-      background: white; color: var(--text-secondary); border: 2px solid #E0E0E0;
-      padding: 8px 16px; border-radius: 20px; font-size: 14px; flex: 1;
+      background: var(--mc-stone); color: white;
+      padding: 10px 16px; border-radius: 0; font-size: 11px; flex: 1;
+      font-family: var(--font-pixel); line-height: 1.6;
+      border: 3px solid;
+      border-color: var(--mc-stone-light) var(--mc-stone-dark) var(--mc-stone-dark) var(--mc-stone-light);
     }
-    #quiz-new-btn:hover { border-color: var(--primary); color: var(--primary); }
+    #quiz-new-btn:hover { background: var(--mc-stone-light); }
 
     .quiz-feedback {
-      text-align: center; padding: 16px; border-radius: var(--radius); margin-bottom: 16px;
+      text-align: center; padding: 16px; border-radius: 0; margin-bottom: 16px;
       font-weight: 700; font-size: 16px; animation: fadeInUp 0.3s ease-out;
+      border: 3px solid;
     }
     .quiz-feedback.correct { background: #E8F5E9; color: #2E7D32; border: 2px solid #A5D6A7; }
     .quiz-feedback.wrong { background: #FFEBEE; color: #C62828; border: 2px solid #EF9A9A; }
@@ -372,9 +452,10 @@
             <div class="quiz-direction" id="quiz-direction"></div>
             <div class="quiz-word" id="quiz-word"></div>
             <div class="quiz-progress" id="quiz-progress-text"></div>
+            <div class="xp-bar"><div class="xp-fill" id="xp-fill"></div></div>
           </div>
         </div>
-        <div class="quiz-input-area">
+        <div class="quiz-input-area" id="quiz-input-area">
           <input type="text" id="quiz-input" placeholder="Typ je antwoord..." autocomplete="off">
           <button id="quiz-submit-btn" title="Verstuur">&#9654;</button>
           <div class="quiz-action-buttons">
@@ -435,19 +516,19 @@ BELANGRIJK:
 - Als je niets vindt, geef dan een lege array: []`;
 
     const LOADING_MESSAGES = [
-      "Estrella leest je woordjes...",
-      "Even kijken, schat!",
+      "Estrella delft je woordjes op...",
+      "Blokjes hakken, schat!",
       "Momentje, darling...",
       "Bijna klaar, liefje!",
     ];
 
     const ENCOURAGEMENTS = [
-      "Super! ⭐", "Goed bezig! 🎉", "Helemaal goed! 🌟", "Knap! 💫",
-      "Top! ✨", "Geweldig! 🚀", "Yes! 🏆", "Lekker bezig! 🌈",
+      "Diamant! 💎", "Goed gehakt! ⛏️", "Helemaal goed! 🌟", "Smaragd! 💚",
+      "Top! ✨", "Level up! 🚀", "Yes! 🏆", "Lekker bezig! 🧱",
     ];
 
     const WRONG_MESSAGES = [
-      "Jammer! 😊", "Bijna! 🤔", "Volgende keer beter! 💪", "Oeps! 😅",
+      "Creeper! 💥", "Bijna! 🤔", "Volgende keer beter! ⛏️", "Oeps! 😅",
     ];
 
     /* ============================================ */
@@ -504,6 +585,8 @@ BELANGRIJK:
       quizDirection: document.getElementById('quiz-direction'),
       quizWord: document.getElementById('quiz-word'),
       quizProgressText: document.getElementById('quiz-progress-text'),
+      xpFill: document.getElementById('xp-fill'),
+      quizInputArea: document.getElementById('quiz-input-area'),
       quizInput: document.getElementById('quiz-input'),
       quizSubmitBtn: document.getElementById('quiz-submit-btn'),
       quizHintBtn: document.getElementById('quiz-hint-btn'),
@@ -731,6 +814,7 @@ BELANGRIJK:
         dom.quizWord.style.fontSize = '';
       }
       dom.quizProgressText.textContent = `Vraag ${state.currentIndex + 1} van ${state.quizQueue.length}`;
+      dom.xpFill.style.width = (state.currentIndex / state.quizQueue.length * 100) + '%';
       dom.quizFeedbackArea.innerHTML = '';
       dom.quizInput.value = '';
       dom.quizInput.disabled = false;
@@ -819,6 +903,7 @@ BELANGRIJK:
 
     function showQuizDone() {
       dom.quizCardContainer.style.display = 'none';
+      dom.quizInputArea.style.display = 'none';
       dom.quizInput.disabled = true;
       dom.quizSubmitBtn.disabled = true;
       dom.quizFeedbackArea.innerHTML = '';
@@ -853,6 +938,7 @@ BELANGRIJK:
       state.currentIndex = 0;
       state.sessionRight = 0;
       state.sessionWrong = 0;
+      dom.quizInputArea.style.display = 'flex';
       dom.quizInput.disabled = false;
       dom.quizSubmitBtn.disabled = false;
       showCurrentQuestion();
@@ -915,6 +1001,7 @@ BELANGRIJK:
       state.homeworkImageMediaType = null;
       dom.quizArea.style.display = 'none';
       dom.quizDoneArea.style.display = 'none';
+      dom.quizInputArea.style.display = 'flex';
       dom.quizFeedbackArea.innerHTML = '';
       dom.uploadArea.style.display = 'block';
       dom.dropZone.style.display = 'block';
