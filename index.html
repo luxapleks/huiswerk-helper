@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Huiswerk Helper - Estrella</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Fredoka+One&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #6C63FF;
+      --primary-light: #8B83FF;
+      --secondary: #FF6B9D;
+      --secondary-light: #FF8DB5;
+      --accent: #00D2FF;
+      --success: #4CAF50;
+      --success-light: #81C784;
+      --warning: #FFB74D;
+      --warning-light: #FFCC80;
+      --bg-main: #F0F4FF;
+      --bg-card: #FFFFFF;
+      --text-primary: #2D3436;
+      --text-secondary: #636E72;
+      --text-light: #B2BEC3;
+      --radius: 16px;
+      --radius-sm: 8px;
+      --radius-lg: 24px;
+      --shadow: 0 4px 20px rgba(108, 99, 255, 0.15);
+      --shadow-lg: 0 8px 40px rgba(108, 99, 255, 0.2);
+      --font-main: 'Nunito', sans-serif;
+      --font-fun: 'Fredoka One', cursive;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font-main);
+      background: var(--bg-main);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+      font-size: 16px;
+      line-height: 1.6;
+    }
+    button {
+      cursor: pointer; border: none; font-family: var(--font-main); font-weight: 700;
+      transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+    }
+    button:hover { transform: scale(1.05); }
+    button:active { transform: scale(0.98); }
+    button:focus-visible, input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+    input { font-family: var(--font-main); }
+
+    /* SETUP */
+    #setup-screen {
+      display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px;
+      background: linear-gradient(135deg, #F0F4FF 0%, #E8DEFF 50%, #FFE8F0 100%);
+    }
+    .setup-card {
+      background: var(--bg-card); border-radius: var(--radius-lg); padding: 48px 40px;
+      max-width: 480px; width: 100%; box-shadow: var(--shadow-lg); text-align: center;
+    }
+    .setup-mascot { font-size: 72px; display: block; margin-bottom: 16px; animation: bounce 2s ease-in-out infinite; }
+    .setup-card h1 {
+      font-family: var(--font-fun); font-size: 28px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 8px;
+    }
+    .setup-card p { color: var(--text-secondary); margin-bottom: 24px; font-size: 15px; }
+    .setup-card .hint-text { font-size: 13px; color: var(--text-light); margin-top: 16px; margin-bottom: 0; }
+    .key-input-group { display: flex; flex-direction: column; gap: 12px; }
+    #api-key-input {
+      width: 100%; padding: 14px 18px; font-size: 16px; border: 2px solid #E0E0E0;
+      border-radius: var(--radius); transition: border-color 0.2s, box-shadow 0.2s; background: #FAFAFA;
+    }
+    #api-key-input:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(108,99,255,0.1); background: white; outline: none; }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white;
+      padding: 14px 32px; border-radius: var(--radius); font-size: 18px; font-weight: 800;
+      box-shadow: 0 4px 15px rgba(108,99,255,0.3); letter-spacing: 0.5px;
+    }
+    .btn-primary:hover { box-shadow: 0 6px 25px rgba(108,99,255,0.4); }
+    .setup-error { color: var(--secondary); font-size: 14px; font-weight: 600; min-height: 20px; margin-top: 8px; }
+
+    /* HEADER */
+    #header {
+      position: sticky; top: 0; z-index: 100; background: rgba(255,255,255,0.9);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      padding: 12px 24px; display: flex; align-items: center; justify-content: space-between;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+    .logo-area { display: flex; align-items: center; gap: 10px; }
+    .logo-area .mascot { font-size: 32px; animation: float 3s ease-in-out infinite; }
+    .logo-area h1 {
+      font-family: var(--font-fun); font-size: 22px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .stats-bar { display: flex; align-items: center; gap: 10px; }
+    .stat-badge {
+      display: flex; align-items: center; gap: 5px; padding: 5px 12px;
+      border-radius: 20px; font-weight: 700; font-size: 14px; border: 2px solid;
+    }
+    .stat-badge.good { background: linear-gradient(135deg, #E8F5E9, #C8E6C9); border-color: #A5D6A7; color: #2E7D32; }
+    .stat-badge.bad { background: linear-gradient(135deg, #FFEBEE, #FFCDD2); border-color: #EF9A9A; color: #C62828; }
+    .stat-badge.pct { background: linear-gradient(135deg, #FFF9E6, #FFF3CC); border-color: #FFE082; color: #F57F17; }
+    .stat-badge.progress-badge { background: linear-gradient(135deg, #E3F2FD, #BBDEFB); border-color: #90CAF9; color: #1565C0; }
+    .stat-value { transition: transform 0.3s; }
+    .stat-value.pop { animation: popIn 0.4s ease-out; }
+    #settings-btn {
+      background: none; font-size: 22px; padding: 6px; border-radius: 50%;
+      width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
+    }
+    #settings-btn:hover { background: var(--bg-main); }
+
+    /* MAIN */
+    main { max-width: 800px; margin: 0 auto; padding: 24px 20px 100px; }
+
+    /* UPLOAD */
+    #upload-area { animation: fadeInUp 0.5s ease-out; }
+    .upload-title { text-align: center; font-family: var(--font-fun); font-size: 24px; color: var(--primary); margin-bottom: 24px; }
+    #drop-zone {
+      border: 3px dashed var(--primary-light); border-radius: var(--radius-lg);
+      padding: 60px 40px; text-align: center; background: white; cursor: pointer; transition: all 0.3s ease;
+    }
+    #drop-zone:hover { border-color: var(--primary); background: #F8F7FF; transform: translateY(-2px); box-shadow: var(--shadow); }
+    #drop-zone.drag-active { border-color: var(--secondary); background: #FFF0F5; transform: scale(1.02); box-shadow: var(--shadow-lg); }
+    .upload-icon { font-size: 64px; display: block; margin-bottom: 16px; animation: float 3s ease-in-out infinite; }
+    #drop-zone h2 { font-family: var(--font-fun); font-size: 22px; color: var(--primary); margin-bottom: 8px; }
+    #drop-zone p { color: var(--text-secondary); font-size: 15px; }
+    .upload-single-btn {
+      display: flex; align-items: center; justify-content: center; gap: 12px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white;
+      border-radius: var(--radius); padding: 20px 40px; font-size: 20px; font-weight: 800;
+      margin: 24px auto 0; box-shadow: 0 4px 15px rgba(108,99,255,0.3);
+      letter-spacing: 0.5px;
+    }
+    .upload-single-btn:hover { box-shadow: 0 6px 25px rgba(108,99,255,0.4); }
+    .upload-single-btn .upload-btn-icon { font-size: 28px; }
+    .file-input-hidden { display: none; }
+    #image-preview { display: none; text-align: center; animation: fadeInUp 0.4s ease-out; }
+    #preview-img { max-width: 100%; max-height: 400px; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 20px; }
+    #pdf-preview-text {
+      display: none; background: white; border-radius: var(--radius); padding: 20px;
+      box-shadow: var(--shadow); margin-bottom: 20px; text-align: center;
+      font-weight: 700; color: var(--primary); font-size: 16px;
+    }
+    .preview-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .btn-secondary {
+      background: white; color: var(--primary); border: 2px solid var(--primary);
+      padding: 12px 24px; border-radius: var(--radius); font-size: 16px; font-weight: 700;
+    }
+    .btn-secondary:hover { background: var(--bg-main); }
+    .btn-analyze {
+      background: linear-gradient(135deg, var(--success), #66BB6A); color: white;
+      padding: 14px 32px; border-radius: var(--radius); font-size: 18px; font-weight: 800;
+      box-shadow: 0 4px 15px rgba(76,175,80,0.3);
+    }
+    .btn-analyze:hover { box-shadow: 0 6px 25px rgba(76,175,80,0.4); }
+
+    /* QUIZ AREA */
+    #quiz-area { display: none; animation: fadeInUp 0.5s ease-out; }
+    .quiz-homework-preview { text-align: center; margin-bottom: 20px; }
+    .quiz-homework-preview img {
+      max-width: 160px; max-height: 120px; border-radius: var(--radius-sm);
+      box-shadow: var(--shadow); cursor: pointer; transition: transform 0.2s;
+    }
+    .quiz-homework-preview img:hover { transform: scale(1.05); }
+
+    .quiz-card {
+      background: white; border-radius: var(--radius-lg); padding: 40px; text-align: center;
+      box-shadow: var(--shadow); margin-bottom: 20px; animation: fadeInUp 0.4s ease-out;
+    }
+    .quiz-direction {
+      font-size: 14px; color: var(--text-secondary); margin-bottom: 8px; font-weight: 600;
+    }
+    .quiz-word {
+      font-family: var(--font-fun); font-size: 36px; color: var(--primary); margin-bottom: 8px;
+      animation: popIn 0.4s ease-out;
+    }
+    .quiz-progress {
+      font-size: 13px; color: var(--text-light); margin-bottom: 0;
+    }
+
+    .quiz-input-area {
+      display: flex; gap: 10px; align-items: center; padding: 12px; background: white;
+      border-radius: var(--radius); box-shadow: var(--shadow); flex-wrap: wrap;
+    }
+    #quiz-input {
+      flex: 1; min-width: 0; padding: 14px 18px; font-size: 18px; border: 2px solid #E8E8E8;
+      border-radius: var(--radius); transition: border-color 0.2s; text-align: center;
+    }
+    #quiz-input:focus { border-color: var(--primary); outline: none; }
+    #quiz-submit-btn {
+      background: var(--primary); color: white; width: 52px; height: 52px; border-radius: 50%;
+      font-size: 22px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .quiz-action-buttons { display: flex; gap: 8px; width: 100%; margin-top: 4px; }
+    #quiz-hint-btn {
+      background: linear-gradient(135deg, var(--warning), var(--warning-light));
+      color: white; padding: 8px 16px; border-radius: 20px; font-size: 14px; flex: 1;
+    }
+    #quiz-new-btn {
+      background: white; color: var(--text-secondary); border: 2px solid #E0E0E0;
+      padding: 8px 16px; border-radius: 20px; font-size: 14px; flex: 1;
+    }
+    #quiz-new-btn:hover { border-color: var(--primary); color: var(--primary); }
+
+    .quiz-feedback {
+      text-align: center; padding: 16px; border-radius: var(--radius); margin-bottom: 16px;
+      font-weight: 700; font-size: 16px; animation: fadeInUp 0.3s ease-out;
+    }
+    .quiz-feedback.correct { background: #E8F5E9; color: #2E7D32; border: 2px solid #A5D6A7; }
+    .quiz-feedback.wrong { background: #FFEBEE; color: #C62828; border: 2px solid #EF9A9A; }
+
+    .quiz-done {
+      background: white; border-radius: var(--radius-lg); padding: 40px; text-align: center;
+      box-shadow: var(--shadow-lg); animation: fadeInUp 0.5s ease-out;
+    }
+    .quiz-done h2 { font-family: var(--font-fun); font-size: 28px; color: var(--primary); margin-bottom: 12px; }
+    .quiz-done .final-score { font-size: 48px; font-family: var(--font-fun); color: var(--success); margin-bottom: 16px; }
+    .quiz-done p { color: var(--text-secondary); margin-bottom: 20px; }
+    .quiz-done .btn-primary { display: inline-block; }
+
+    /* LOADING OVERLAY */
+    #loading-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(240,244,255,0.92);
+      backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+      z-index: 200; flex-direction: column; align-items: center; justify-content: center; gap: 20px;
+    }
+    #loading-overlay.visible { display: flex; }
+    .loading-mascot { font-size: 72px; animation: bounce 1.5s ease-in-out infinite; }
+    .loading-text { font-family: var(--font-fun); font-size: 20px; color: var(--primary); animation: pulse 2s ease-in-out infinite; }
+    .loading-dots { display: flex; gap: 8px; }
+    .loading-dots span { width: 12px; height: 12px; border-radius: 50%; background: var(--primary); animation: typingBounce 1.4s ease-in-out infinite; }
+    .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+    /* TOAST */
+    .toast {
+      position: fixed; top: 80px; left: 50%; transform: translateX(-50%); padding: 14px 28px;
+      border-radius: var(--radius); font-weight: 700; font-size: 16px; z-index: 300;
+      animation: toastIn 0.4s ease-out, toastOut 0.4s ease-in 2.6s forwards;
+      box-shadow: var(--shadow-lg); text-align: center; max-width: 90%;
+    }
+    .toast-success { background: linear-gradient(135deg, var(--success), var(--success-light)); color: white; }
+    .toast-error { background: linear-gradient(135deg, var(--secondary), var(--secondary-light)); color: white; }
+
+    /* SETTINGS */
+    #settings-panel {
+      display: none; position: fixed; top: 70px; right: 20px; background: white; padding: 20px;
+      border-radius: var(--radius); box-shadow: var(--shadow-lg); z-index: 150; width: 300px;
+      animation: fadeInUp 0.3s ease-out;
+    }
+    #settings-panel.visible { display: block; }
+    #settings-panel h3 { font-family: var(--font-fun); color: var(--primary); margin-bottom: 12px; font-size: 18px; }
+    #settings-panel input { width: 100%; padding: 10px 14px; border: 2px solid #E0E0E0; border-radius: var(--radius-sm); font-size: 14px; margin-bottom: 12px; }
+    #settings-panel input:focus { border-color: var(--primary); outline: none; }
+    .settings-actions { display: flex; gap: 8px; }
+    .settings-actions button { flex: 1; padding: 8px; border-radius: var(--radius-sm); font-size: 14px; }
+    #save-settings-btn { background: var(--primary); color: white; }
+    #clear-data-btn { background: white; color: var(--secondary); border: 2px solid var(--secondary); }
+
+    #confetti-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 9999; }
+
+    /* ANIMATIONS */
+    @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+    @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes popIn { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(1); } }
+    @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+    @keyframes typingBounce { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-8px); } }
+    @keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(-20px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+    @keyframes toastOut { from { opacity: 1; transform: translateX(-50%) translateY(0); } to { opacity: 0; transform: translateX(-50%) translateY(-20px); } }
+
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+      .setup-card { padding: 32px 24px; }
+      .setup-card h1 { font-size: 24px; }
+      #header { padding: 10px 16px; }
+      .logo-area h1 { font-size: 18px; }
+      .stat-badge { padding: 4px 8px; font-size: 12px; }
+      main { padding: 16px 12px 80px; }
+      #drop-zone { padding: 40px 20px; }
+      .upload-icon { font-size: 48px; }
+      #drop-zone h2 { font-size: 18px; }
+      .quiz-card { padding: 28px 20px; }
+      .quiz-word { font-size: 28px; }
+      #settings-panel { right: 10px; left: 10px; width: auto; }
+    }
+    @media (max-width: 480px) {
+      .stats-bar { gap: 4px; }
+      .stat-badge { padding: 3px 6px; font-size: 11px; }
+      .quiz-input-area { padding: 8px; }
+      .preview-buttons { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- SETUP -->
+  <div id="setup-screen">
+    <div class="setup-card">
+      <span class="setup-mascot">🫏✨</span>
+      <h1>Huiswerk Helper!</h1>
+      <p>Hoi! Ik ben <strong>Estrella</strong>, jouw leermaatje!<br>Vraag een ouder om de API-sleutel hieronder te plakken.</p>
+      <div class="key-input-group">
+        <input type="password" id="api-key-input" placeholder="Plak hier de Anthropic API-sleutel" autocomplete="off">
+        <button class="btn-primary" id="save-key-btn">Laten we beginnen!</button>
+      </div>
+      <div class="setup-error" id="setup-error"></div>
+      <p class="hint-text">Je sleutel blijft alleen op deze computer. De API wordt maar 1x gebruikt per foto (~€0,01).</p>
+    </div>
+  </div>
+
+  <!-- APP -->
+  <div id="app-screen" style="display:none">
+    <header id="header">
+      <div class="logo-area">
+        <span class="mascot">🫏✨</span>
+        <h1>Huiswerk Helper</h1>
+      </div>
+      <div class="stats-bar">
+        <div class="stat-badge good"><span>&#9989;</span><span class="stat-value" id="right-count">0</span></div>
+        <div class="stat-badge bad"><span>&#10060;</span><span class="stat-value" id="wrong-count">0</span></div>
+        <div class="stat-badge pct"><span>&#127942;</span><span class="stat-value" id="pct-value">0%</span></div>
+        <div class="stat-badge progress-badge"><span>&#128218;</span><span class="stat-value" id="progress-value">0/0</span></div>
+        <button id="settings-btn" title="Instellingen">&#9881;&#65039;</button>
+      </div>
+    </header>
+
+    <div id="settings-panel">
+      <h3>Instellingen</h3>
+      <input type="password" id="settings-api-key" placeholder="Nieuwe API-sleutel">
+      <div class="settings-actions">
+        <button id="save-settings-btn">Opslaan</button>
+        <button id="clear-data-btn">Score resetten</button>
+      </div>
+    </div>
+
+    <main>
+      <!-- UPLOAD -->
+      <div id="upload-area">
+        <h2 class="upload-title">Wat gaan we vandaag leren?</h2>
+        <div id="drop-zone">
+          <span class="upload-icon">&#128218;</span>
+          <h2>Kies je huiswerk!</h2>
+          <p>Maak een foto, kies een afbeelding of open een PDF</p>
+          <button class="upload-single-btn" id="choose-file-btn">
+            <span class="upload-btn-icon">&#128206;</span>
+            Kies je huiswerk
+          </button>
+          <input type="file" id="file-input" class="file-input-hidden" accept="image/*,application/pdf">
+        </div>
+        <div id="image-preview">
+          <img id="preview-img" alt="Je huiswerk">
+          <div id="pdf-preview-text"></div>
+          <div class="preview-buttons">
+            <button class="btn-secondary" id="change-image-btn">Opnieuw kiezen</button>
+            <button class="btn-analyze" id="analyze-btn">Start! &#127775;</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- QUIZ -->
+      <div id="quiz-area">
+        <div class="quiz-homework-preview">
+          <img id="quiz-preview-img" alt="Je huiswerk" title="Klik om groter te zien">
+        </div>
+        <div id="quiz-feedback-area"></div>
+        <div id="quiz-card-container">
+          <div class="quiz-card">
+            <div class="quiz-direction" id="quiz-direction"></div>
+            <div class="quiz-word" id="quiz-word"></div>
+            <div class="quiz-progress" id="quiz-progress-text"></div>
+          </div>
+        </div>
+        <div class="quiz-input-area">
+          <input type="text" id="quiz-input" placeholder="Typ je antwoord..." autocomplete="off">
+          <button id="quiz-submit-btn" title="Verstuur">&#9654;</button>
+          <div class="quiz-action-buttons">
+            <button id="quiz-hint-btn">&#128161; Hint!</button>
+            <button id="quiz-new-btn">&#128196; Nieuw huiswerk</button>
+          </div>
+        </div>
+        <div id="quiz-done-area" style="display:none"></div>
+      </div>
+    </main>
+  </div>
+
+  <!-- LOADING -->
+  <div id="loading-overlay">
+    <span class="loading-mascot">🫏✨</span>
+    <div class="loading-text" id="loading-text">Estrella leest je woordjes...</div>
+    <div class="loading-dots"><span></span><span></span><span></span></div>
+  </div>
+
+  <canvas id="confetti-canvas"></canvas>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script>
+    /* ============================================ */
+    /* CONSTANTS                                    */
+    /* ============================================ */
+    const API_URL = 'https://api.anthropic.com/v1/messages';
+    const MODEL = 'claude-sonnet-5';
+    const MAX_TOKENS = 4096;
+
+    // This prompt is ONLY used once to extract ALL learning content from the image
+    const EXTRACTION_PROMPT = `Bekijk deze foto van huiswerk. Zoek ALLE leerstof op de pagina en geef alles terug als JSON.
+
+Er kunnen verschillende secties zijn, zoals:
+1. Woordjes (Engels-Nederlands woordparen)
+2. Zinnen/Phrases (volledige Engelse en Nederlandse zinnen)
+3. Getallen (cijfers met hun Engelse schrijfwijze, bijv. 11 = eleven)
+4. Andere woordparen of leerstof
+
+Geef ALLES terug als één JSON array. Elk item heeft:
+- "en": de Engelse tekst (woord, zin, of het getal in het Engels geschreven)
+- "nl": de Nederlandse tekst (woord, zin, of het cijfer als string)
+- "type": "word", "phrase", of "number"
+
+Voorbeeld:
+[{"en":"dog","nl":"hond","type":"word"},{"en":"Can I help you?","nl":"Kan ik je helpen?","type":"phrase"},{"en":"eleven","nl":"11","type":"number"}]
+
+BELANGRIJK:
+- Doorzoek ALLE secties van het document, niet alleen de eerste sectie
+- Bij getallen: "en" = Engels woord (bijv. "twenty-one"), "nl" = het cijfer als string (bijv. "21")
+- Bij zinnen: neem de hele zin over inclusief leestekens
+- Geef ALLEEN de JSON array terug, geen andere tekst
+- Als je niets vindt, geef dan een lege array: []`;
+
+    const LOADING_MESSAGES = [
+      "Estrella leest je woordjes...",
+      "Even kijken, schat!",
+      "Momentje, darling...",
+      "Bijna klaar, liefje!",
+    ];
+
+    const ENCOURAGEMENTS = [
+      "Super! ⭐", "Goed bezig! 🎉", "Helemaal goed! 🌟", "Knap! 💫",
+      "Top! ✨", "Geweldig! 🚀", "Yes! 🏆", "Lekker bezig! 🌈",
+    ];
+
+    const WRONG_MESSAGES = [
+      "Jammer! 😊", "Bijna! 🤔", "Volgende keer beter! 💪", "Oeps! 😅",
+    ];
+
+    /* ============================================ */
+    /* STATE                                        */
+    /* ============================================ */
+    const state = {
+      apiKey: localStorage.getItem('hw-helper-api-key') || '',
+      homeworkImageBase64: null,
+      homeworkImageMediaType: null,
+      // Quiz state
+      wordPairs: [],           // [{en, nl}, ...]
+      quizQueue: [],           // shuffled quiz items: [{prompt, answer, direction}, ...]
+      currentIndex: 0,
+      sessionRight: 0,
+      sessionWrong: 0,
+      hintUsed: false,
+      // Persistent stats
+      right: parseInt(localStorage.getItem('hw-helper-right') || '0'),
+      wrong: parseInt(localStorage.getItem('hw-helper-wrong') || '0'),
+      loadingInterval: null,
+    };
+
+    /* ============================================ */
+    /* DOM                                          */
+    /* ============================================ */
+    const dom = {
+      setupScreen: document.getElementById('setup-screen'),
+      appScreen: document.getElementById('app-screen'),
+      apiKeyInput: document.getElementById('api-key-input'),
+      saveKeyBtn: document.getElementById('save-key-btn'),
+      setupError: document.getElementById('setup-error'),
+      settingsBtn: document.getElementById('settings-btn'),
+      settingsPanel: document.getElementById('settings-panel'),
+      settingsApiKey: document.getElementById('settings-api-key'),
+      saveSettingsBtn: document.getElementById('save-settings-btn'),
+      clearDataBtn: document.getElementById('clear-data-btn'),
+      rightCount: document.getElementById('right-count'),
+      wrongCount: document.getElementById('wrong-count'),
+      pctValue: document.getElementById('pct-value'),
+      progressValue: document.getElementById('progress-value'),
+      uploadArea: document.getElementById('upload-area'),
+      dropZone: document.getElementById('drop-zone'),
+      chooseFileBtn: document.getElementById('choose-file-btn'),
+      fileInput: document.getElementById('file-input'),
+      imagePreview: document.getElementById('image-preview'),
+      previewImg: document.getElementById('preview-img'),
+      pdfPreviewText: document.getElementById('pdf-preview-text'),
+      changeImageBtn: document.getElementById('change-image-btn'),
+      analyzeBtn: document.getElementById('analyze-btn'),
+      quizArea: document.getElementById('quiz-area'),
+      quizPreviewImg: document.getElementById('quiz-preview-img'),
+      quizFeedbackArea: document.getElementById('quiz-feedback-area'),
+      quizCardContainer: document.getElementById('quiz-card-container'),
+      quizDirection: document.getElementById('quiz-direction'),
+      quizWord: document.getElementById('quiz-word'),
+      quizProgressText: document.getElementById('quiz-progress-text'),
+      quizInput: document.getElementById('quiz-input'),
+      quizSubmitBtn: document.getElementById('quiz-submit-btn'),
+      quizHintBtn: document.getElementById('quiz-hint-btn'),
+      quizNewBtn: document.getElementById('quiz-new-btn'),
+      quizDoneArea: document.getElementById('quiz-done-area'),
+      loadingOverlay: document.getElementById('loading-overlay'),
+      loadingText: document.getElementById('loading-text'),
+      confettiCanvas: document.getElementById('confetti-canvas'),
+    };
+
+    /* ============================================ */
+    /* IMAGE HANDLING                               */
+    /* ============================================ */
+    function convertToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function resizeImageIfNeeded(base64, mediaType, maxDim = 1024) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+          if (img.width <= maxDim && img.height <= maxDim) { resolve({ base64, mediaType }); return; }
+          const canvas = document.createElement('canvas');
+          let w = img.width, h = img.height;
+          if (w > h) { if (w > maxDim) { h = Math.round(h * maxDim / w); w = maxDim; } }
+          else { if (h > maxDim) { w = Math.round(w * maxDim / h); h = maxDim; } }
+          canvas.width = w; canvas.height = h;
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+          resolve({ base64: canvas.toDataURL('image/jpeg', 0.8).split(',')[1], mediaType: 'image/jpeg' });
+        };
+        img.onerror = () => resolve({ base64, mediaType });
+        img.src = `data:${mediaType};base64,${base64}`;
+      });
+    }
+
+    async function handleFile(file) {
+      if (!file) return;
+      if (file.size > 20 * 1024 * 1024) { showToast('Te groot! Probeer een kleiner bestand.', 'error'); return; }
+
+      if (file.type === 'application/pdf') {
+        await handlePDF(file);
+      } else if (file.type.startsWith('image/')) {
+        const base64 = await convertToBase64(file);
+        const resized = await resizeImageIfNeeded(base64, file.type);
+        state.homeworkImageBase64 = resized.base64;
+        state.homeworkImageMediaType = resized.mediaType;
+        const objectUrl = URL.createObjectURL(file);
+        dom.previewImg.src = objectUrl;
+        dom.previewImg.style.display = 'block';
+        dom.pdfPreviewText.style.display = 'none';
+        dom.quizPreviewImg.src = objectUrl;
+        dom.dropZone.style.display = 'none';
+        dom.imagePreview.style.display = 'block';
+      } else {
+        showToast('Kies een afbeelding of PDF!', 'error');
+      }
+    }
+
+    async function handlePDF(file) {
+      try {
+        const arrayBuffer = await file.arrayBuffer();
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        const page = await pdf.getPage(1);
+        const scale = 1.5;
+        const viewport = page.getViewport({ scale });
+        const canvas = document.createElement('canvas');
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+        const ctx = canvas.getContext('2d');
+        await page.render({ canvasContext: ctx, viewport }).promise;
+
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+        const base64 = dataUrl.split(',')[1];
+        const resized = await resizeImageIfNeeded(base64, 'image/jpeg');
+        state.homeworkImageBase64 = resized.base64;
+        state.homeworkImageMediaType = resized.mediaType;
+
+        dom.previewImg.src = dataUrl;
+        dom.previewImg.style.display = 'block';
+        dom.pdfPreviewText.style.display = 'block';
+        dom.pdfPreviewText.textContent = `📄 ${file.name} (${pdf.numPages} pagina${pdf.numPages > 1 ? "'s" : ''})`;
+        dom.quizPreviewImg.src = dataUrl;
+        dom.dropZone.style.display = 'none';
+        dom.imagePreview.style.display = 'block';
+      } catch (err) {
+        showToast('Kan de PDF niet openen. Probeer opnieuw!', 'error');
+      }
+    }
+
+    /* ============================================ */
+    /* API - SINGLE CALL TO EXTRACT WORDS           */
+    /* ============================================ */
+    async function extractWordsFromImage() {
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': state.apiKey,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true',
+        },
+        body: JSON.stringify({
+          model: MODEL,
+          max_tokens: MAX_TOKENS,
+          messages: [{
+            role: 'user',
+            content: [
+              { type: 'image', source: { type: 'base64', media_type: state.homeworkImageMediaType, data: state.homeworkImageBase64 } },
+              { type: 'text', text: EXTRACTION_PROMPT },
+            ],
+          }],
+        }),
+      });
+
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        const fullMsg = errData?.error?.message || `Status ${response.status}`;
+        throw new Error(fullMsg);
+      }
+
+      const data = await response.json();
+      const text = data.content[0].text.trim();
+
+      // Parse JSON from the response (handle potential markdown code blocks)
+      let jsonStr = text;
+      const codeBlockMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+      if (codeBlockMatch) jsonStr = codeBlockMatch[1].trim();
+
+      const pairs = JSON.parse(jsonStr);
+      if (!Array.isArray(pairs)) throw new Error('Geen woordjes gevonden op de foto.');
+      return pairs.filter(p => p.en && p.nl);
+    }
+
+    /* ============================================ */
+    /* OFFLINE QUIZ ENGINE                          */
+    /* ============================================ */
+    function buildQuizQueue(wordPairs) {
+      const queue = [];
+      for (const pair of wordPairs) {
+        const type = pair.type || 'word';
+
+        if (type === 'number') {
+          // Show digit, ask for English word
+          queue.push({
+            prompt: pair.nl,
+            answer: pair.en.toLowerCase().trim(),
+            direction: 'nl_to_en',
+            directionText: 'Schrijf dit getal in het Engels:',
+            type,
+          });
+          // Show English word, ask for digit
+          queue.push({
+            prompt: pair.en,
+            answer: pair.nl.toLowerCase().trim(),
+            direction: 'en_to_nl',
+            directionText: 'Welk getal is dit?',
+            type,
+          });
+        } else if (type === 'phrase') {
+          // Show English sentence, ask for Dutch
+          queue.push({
+            prompt: pair.en,
+            answer: pair.nl.toLowerCase().trim(),
+            direction: 'en_to_nl',
+            directionText: 'Vertaal naar het Nederlands:',
+            type,
+          });
+          // Show Dutch sentence, ask for English
+          queue.push({
+            prompt: pair.nl,
+            answer: pair.en.toLowerCase().trim(),
+            direction: 'nl_to_en',
+            directionText: 'Vertaal naar het Engels:',
+            type,
+          });
+        } else {
+          // Regular word
+          queue.push({
+            prompt: pair.en,
+            answer: pair.nl.toLowerCase().trim(),
+            direction: 'en_to_nl',
+            directionText: 'Wat betekent dit in het Nederlands?',
+            type: 'word',
+          });
+          queue.push({
+            prompt: pair.nl,
+            answer: pair.en.toLowerCase().trim(),
+            direction: 'nl_to_en',
+            directionText: 'Wat is dit in het Engels?',
+            type: 'word',
+          });
+        }
+      }
+      // Shuffle
+      for (let i = queue.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [queue[i], queue[j]] = [queue[j], queue[i]];
+      }
+      return queue;
+    }
+
+    function showCurrentQuestion() {
+      if (state.currentIndex >= state.quizQueue.length) {
+        showQuizDone();
+        return;
+      }
+      const item = state.quizQueue[state.currentIndex];
+      dom.quizDirection.textContent = item.directionText;
+      dom.quizWord.textContent = item.prompt;
+      // Dynamic font size: smaller for long phrases
+      if (item.prompt.length > 35) {
+        dom.quizWord.style.fontSize = '18px';
+      } else if (item.prompt.length > 20) {
+        dom.quizWord.style.fontSize = '24px';
+      } else {
+        dom.quizWord.style.fontSize = '';
+      }
+      dom.quizProgressText.textContent = `Vraag ${state.currentIndex + 1} van ${state.quizQueue.length}`;
+      dom.quizFeedbackArea.innerHTML = '';
+      dom.quizInput.value = '';
+      dom.quizInput.disabled = false;
+      dom.quizSubmitBtn.disabled = false;
+      dom.quizInput.focus();
+      state.hintUsed = false;
+      dom.quizCardContainer.style.display = 'block';
+      dom.quizDoneArea.style.display = 'none';
+      updateStats();
+    }
+
+    function normalizeAnswer(str) {
+      return str.toLowerCase().trim()
+        .replace(/[.,!?;:'"()]/g, '')  // strip punctuation
+        .replace(/\s+/g, ' ')          // normalize whitespace
+        .trim();
+    }
+
+    function checkAnswer() {
+      const userAnswer = normalizeAnswer(dom.quizInput.value);
+      if (!userAnswer) return;
+
+      const item = state.quizQueue[state.currentIndex];
+      const correct = normalizeAnswer(item.answer) === userAnswer;
+
+      // Show feedback
+      const fb = document.createElement('div');
+      fb.className = 'quiz-feedback ' + (correct ? 'correct' : 'wrong');
+
+      if (correct) {
+        fb.textContent = ENCOURAGEMENTS[Math.floor(Math.random() * ENCOURAGEMENTS.length)];
+        state.sessionRight++;
+        state.right++;
+        localStorage.setItem('hw-helper-right', state.right.toString());
+        celebrate();
+      } else {
+        const wrongMsg = WRONG_MESSAGES[Math.floor(Math.random() * WRONG_MESSAGES.length)];
+        fb.textContent = `${wrongMsg} Het goede antwoord is: ${item.answer}`;
+        state.sessionWrong++;
+        state.wrong++;
+        localStorage.setItem('hw-helper-wrong', state.wrong.toString());
+      }
+
+      dom.quizFeedbackArea.innerHTML = '';
+      dom.quizFeedbackArea.appendChild(fb);
+      updateStats(true);
+
+      // Disable input briefly, then move to next
+      dom.quizInput.disabled = true;
+      dom.quizSubmitBtn.disabled = true;
+
+      setTimeout(() => {
+        state.currentIndex++;
+        showCurrentQuestion();
+      }, correct ? 1200 : 2500);
+    }
+
+    function showHint() {
+      if (state.hintUsed) return;
+      state.hintUsed = true;
+      const item = state.quizQueue[state.currentIndex];
+      let hint;
+      if (item.answer.includes(' ')) {
+        // Multi-word: show first word + ...
+        hint = item.answer.split(' ')[0] + ' ...';
+      } else {
+        hint = item.answer[0].toUpperCase() + '...';
+      }
+      const fb = document.createElement('div');
+      fb.className = 'quiz-feedback correct';
+      fb.style.background = '#FFF8E1';
+      fb.style.color = '#F57F17';
+      fb.style.borderColor = '#FFE082';
+      const hintLabel = item.answer.includes(' ') ? 'Het eerste woord is' : 'De eerste letter is';
+      fb.textContent = `💡 ${hintLabel}: ${hint}`;
+      dom.quizFeedbackArea.innerHTML = '';
+      dom.quizFeedbackArea.appendChild(fb);
+      dom.quizInput.focus();
+    }
+
+    function showQuizDone() {
+      dom.quizCardContainer.style.display = 'none';
+      dom.quizInput.disabled = true;
+      dom.quizSubmitBtn.disabled = true;
+      dom.quizFeedbackArea.innerHTML = '';
+
+      const total = state.sessionRight + state.sessionWrong;
+      const pct = total > 0 ? Math.round((state.sessionRight / total) * 100) : 0;
+
+      let emoji = '🎉';
+      let msg = 'Geweldig gedaan!';
+      if (pct === 100) { emoji = '🏆'; msg = 'Perfect! Alles goed!'; }
+      else if (pct >= 80) { emoji = '🌟'; msg = 'Super goed!'; }
+      else if (pct >= 60) { emoji = '💪'; msg = 'Goed bezig!'; }
+      else { emoji = '📚'; msg = 'Blijf oefenen, het komt goed!'; }
+
+      dom.quizDoneArea.style.display = 'block';
+      dom.quizDoneArea.innerHTML = `
+        <div class="quiz-done">
+          <h2>Klaar! ${emoji}</h2>
+          <div class="final-score">${pct}%</div>
+          <p>${msg}<br>${state.sessionRight} goed, ${state.sessionWrong} fout van de ${total} vragen.</p>
+          <button class="btn-primary" onclick="restartQuiz()">Opnieuw oefenen &#128260;</button>
+          <br><br>
+          <button class="btn-secondary" onclick="resetForNewHomework()">Nieuw huiswerk &#128196;</button>
+        </div>
+      `;
+
+      if (pct >= 80) celebrate();
+    }
+
+    function restartQuiz() {
+      state.quizQueue = buildQuizQueue(state.wordPairs);
+      state.currentIndex = 0;
+      state.sessionRight = 0;
+      state.sessionWrong = 0;
+      dom.quizInput.disabled = false;
+      dom.quizSubmitBtn.disabled = false;
+      showCurrentQuestion();
+    }
+
+    /* ============================================ */
+    /* HANDLERS                                     */
+    /* ============================================ */
+    function handleSaveKey() {
+      const key = dom.apiKeyInput.value.trim();
+      if (!key) { dom.setupError.textContent = 'Plak eerst je API-sleutel hierboven!'; return; }
+      state.apiKey = key;
+      localStorage.setItem('hw-helper-api-key', key);
+      dom.setupScreen.style.display = 'none';
+      dom.appScreen.style.display = 'block';
+      updateStats();
+    }
+
+    async function handleAnalyze() {
+      if (!state.homeworkImageBase64) return;
+      showLoading();
+      try {
+        const pairs = await extractWordsFromImage();
+        hideLoading();
+        if (pairs.length === 0) {
+          showToast('Geen woordjes gevonden op de foto. Probeer een andere foto!', 'error');
+          return;
+        }
+        state.wordPairs = pairs;
+        state.quizQueue = buildQuizQueue(pairs);
+        state.currentIndex = 0;
+        state.sessionRight = 0;
+        state.sessionWrong = 0;
+
+        dom.uploadArea.style.display = 'none';
+        dom.quizArea.style.display = 'block';
+
+        const words = pairs.filter(p => (p.type || 'word') === 'word').length;
+        const phrases = pairs.filter(p => p.type === 'phrase').length;
+        const numbers = pairs.filter(p => p.type === 'number').length;
+        const parts = [];
+        if (words) parts.push(`${words} woordjes`);
+        if (phrases) parts.push(`${phrases} zinnen`);
+        if (numbers) parts.push(`${numbers} getallen`);
+        showToast(`${parts.join(', ')} gevonden! Succes!`, 'success');
+        showCurrentQuestion();
+      } catch (err) {
+        hideLoading();
+        showToast(err.message, 'error');
+      }
+    }
+
+    function resetForNewHomework() {
+      state.wordPairs = [];
+      state.quizQueue = [];
+      state.currentIndex = 0;
+      state.sessionRight = 0;
+      state.sessionWrong = 0;
+      state.homeworkImageBase64 = null;
+      state.homeworkImageMediaType = null;
+      dom.quizArea.style.display = 'none';
+      dom.quizDoneArea.style.display = 'none';
+      dom.quizFeedbackArea.innerHTML = '';
+      dom.uploadArea.style.display = 'block';
+      dom.dropZone.style.display = 'block';
+      dom.imagePreview.style.display = 'none';
+      dom.previewImg.src = '';
+      dom.previewImg.style.display = 'block';
+      dom.pdfPreviewText.style.display = 'none';
+      dom.quizPreviewImg.src = '';
+      dom.fileInput.value = '';
+    }
+
+    /* ============================================ */
+    /* UI UTILITIES                                 */
+    /* ============================================ */
+    function showLoading() {
+      dom.loadingOverlay.classList.add('visible');
+      rotateLoadingMessage();
+      state.loadingInterval = setInterval(rotateLoadingMessage, 2500);
+    }
+    function hideLoading() {
+      dom.loadingOverlay.classList.remove('visible');
+      if (state.loadingInterval) { clearInterval(state.loadingInterval); state.loadingInterval = null; }
+    }
+    function rotateLoadingMessage() {
+      dom.loadingText.textContent = LOADING_MESSAGES[Math.floor(Math.random() * LOADING_MESSAGES.length)];
+    }
+
+    function updateStats(animate = false) {
+      dom.rightCount.textContent = state.right;
+      dom.wrongCount.textContent = state.wrong;
+      const total = state.right + state.wrong;
+      const pct = total > 0 ? Math.round((state.right / total) * 100) : 0;
+      dom.pctValue.textContent = pct + '%';
+      // Session progress
+      if (state.quizQueue.length > 0) {
+        dom.progressValue.textContent = `${state.currentIndex}/${state.quizQueue.length}`;
+      } else {
+        dom.progressValue.textContent = '0/0';
+      }
+      if (animate) {
+        [dom.rightCount, dom.wrongCount, dom.pctValue].forEach(el => {
+          el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop');
+        });
+      }
+    }
+
+    function showToast(message, type = 'success') {
+      const toast = document.createElement('div');
+      toast.className = `toast toast-${type}`;
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 3200);
+    }
+
+    function toggleSettings() { dom.settingsPanel.classList.toggle('visible'); }
+
+    /* ============================================ */
+    /* CONFETTI                                     */
+    /* ============================================ */
+    class ConfettiSystem {
+      constructor(canvas) {
+        this.canvas = canvas; this.ctx = canvas.getContext('2d');
+        this.particles = []; this.isRunning = false;
+        this.colors = ['#6C63FF','#FF6B9D','#00D2FF','#FFD700','#FF6B6B','#4CAF50','#FF9800','#E040FB'];
+      }
+      resize() { this.canvas.width = window.innerWidth; this.canvas.height = window.innerHeight; }
+      launch() {
+        this.resize(); this.particles = [];
+        for (let i = 0; i < 100; i++) {
+          this.particles.push({
+            x: Math.random()*this.canvas.width, y: -10-Math.random()*100,
+            dx: (Math.random()-0.5)*6, dy: Math.random()*3+2,
+            size: Math.random()*6+4, color: this.colors[Math.floor(Math.random()*this.colors.length)],
+            rotation: Math.random()*360, rotationSpeed: (Math.random()-0.5)*10,
+            shape: Math.random()>0.5?'rect':'circle', gravity: 0.05+Math.random()*0.05,
+            wobble: Math.random()*10, wobbleSpeed: Math.random()*0.1,
+          });
+        }
+        if (!this.isRunning) { this.isRunning = true; this.animate(); }
+      }
+      animate() {
+        if (!this.isRunning) return;
+        this.ctx.clearRect(0,0,this.canvas.width,this.canvas.height);
+        this.particles = this.particles.filter(p => {
+          p.dy+=p.gravity; p.x+=p.dx+Math.sin(p.wobble)*0.5; p.y+=p.dy;
+          p.rotation+=p.rotationSpeed; p.wobble+=p.wobbleSpeed; p.dx*=0.99;
+          this.ctx.save(); this.ctx.translate(p.x,p.y);
+          this.ctx.rotate((p.rotation*Math.PI)/180);
+          this.ctx.fillStyle=p.color; this.ctx.globalAlpha=Math.max(0,1-p.y/this.canvas.height);
+          if(p.shape==='rect') this.ctx.fillRect(-p.size/2,-p.size/2,p.size,p.size*0.6);
+          else{this.ctx.beginPath();this.ctx.arc(0,0,p.size/2,0,Math.PI*2);this.ctx.fill();}
+          this.ctx.restore(); return p.y<this.canvas.height+20;
+        });
+        if(this.particles.length>0) requestAnimationFrame(()=>this.animate());
+        else{this.isRunning=false;this.ctx.clearRect(0,0,this.canvas.width,this.canvas.height);}
+      }
+    }
+    const confetti = new ConfettiSystem(dom.confettiCanvas);
+    function celebrate() {
+      confetti.launch();
+      showToast(ENCOURAGEMENTS[Math.floor(Math.random()*ENCOURAGEMENTS.length)],'success');
+    }
+
+    /* ============================================ */
+    /* INIT                                         */
+    /* ============================================ */
+    function init() {
+      if (state.apiKey) { dom.setupScreen.style.display = 'none'; dom.appScreen.style.display = 'block'; }
+      updateStats();
+
+      // Setup
+      dom.saveKeyBtn.addEventListener('click', handleSaveKey);
+      dom.apiKeyInput.addEventListener('keydown', e => { if (e.key==='Enter') handleSaveKey(); });
+
+      // Upload button
+      dom.chooseFileBtn.addEventListener('click', () => dom.fileInput.click());
+      dom.fileInput.addEventListener('change', e => { if(e.target.files[0]) handleFile(e.target.files[0]); });
+
+      // Drag and drop (still works on desktop)
+      dom.dropZone.addEventListener('dragover', e => { e.preventDefault(); dom.dropZone.classList.add('drag-active'); });
+      dom.dropZone.addEventListener('dragleave', () => dom.dropZone.classList.remove('drag-active'));
+      dom.dropZone.addEventListener('drop', e => {
+        e.preventDefault(); dom.dropZone.classList.remove('drag-active');
+        if(e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+      });
+      dom.changeImageBtn.addEventListener('click', () => {
+        dom.imagePreview.style.display='none'; dom.dropZone.style.display='block';
+        dom.fileInput.value='';
+        state.homeworkImageBase64=null; state.homeworkImageMediaType=null;
+      });
+      dom.analyzeBtn.addEventListener('click', handleAnalyze);
+
+      // Quiz
+      dom.quizSubmitBtn.addEventListener('click', checkAnswer);
+      dom.quizInput.addEventListener('keydown', e => { if(e.key==='Enter') checkAnswer(); });
+      dom.quizHintBtn.addEventListener('click', showHint);
+      dom.quizNewBtn.addEventListener('click', resetForNewHomework);
+
+      // Settings
+      dom.settingsBtn.addEventListener('click', toggleSettings);
+      dom.saveSettingsBtn.addEventListener('click', () => {
+        const k = dom.settingsApiKey.value.trim();
+        if(k){ state.apiKey=k; localStorage.setItem('hw-helper-api-key',k); showToast('Opgeslagen!','success'); toggleSettings(); }
+      });
+      dom.clearDataBtn.addEventListener('click', () => {
+        state.right=0; state.wrong=0;
+        localStorage.setItem('hw-helper-right','0'); localStorage.setItem('hw-helper-wrong','0');
+        updateStats(); showToast('Score gereset!','success'); toggleSettings();
+      });
+      document.addEventListener('click', e => {
+        if(!dom.settingsPanel.contains(e.target) && e.target!==dom.settingsBtn) dom.settingsPanel.classList.remove('visible');
+      });
+      dom.quizPreviewImg.addEventListener('click', () => {
+        const src=dom.quizPreviewImg.src; if(!src) return;
+        const w=window.open('','_blank'); w.document.write(`<img src="${src}" style="max-width:100%;height:auto;">`);
+        w.document.title='Huiswerk Foto';
+      });
+      window.addEventListener('resize', () => confetti.resize());
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
